@@ -25,7 +25,7 @@
 
 //  See GGLInstanceID.h
 #define GMP_NO_MODULES true
-
+#import <CallKit/CallKit.h>
 #import "PushPlugin.h"
 #import "AppDelegate+notification.h"
 @import FirebaseInstanceID;
@@ -485,6 +485,17 @@
 
         self.coldstart = NO;
         self.notificationMessage = nil;
+
+        if ([[additionalData valueForKeyPath:@"l7.type"] isEqualToString:@"voipcall"]) {
+            CDVViewController* cv = (CDVViewController*) self.viewController;
+            NSArray *a = @[@"INVALID", @"ignored", @"ignored", @[
+                [additionalData valueForKeyPath:@"l7.caller_name"],
+                [additionalData valueForKeyPath:@"l7.caller_id"]
+            ]];
+            CDVInvokedUrlCommand *cmd = [CDVInvokedUrlCommand commandFromJson:a];
+
+            [[cv.pluginObjects valueForKey:@"CordovaCall"] performSelector:NSSelectorFromString(@"receiveCall:") withObject:cmd];
+        }
     }
 }
 
@@ -503,7 +514,7 @@
             [matchingNotificationIdentifiers addObject:notification.request.identifier];
         }
         [[UNUserNotificationCenter currentNotificationCenter] removeDeliveredNotificationsWithIdentifiers:matchingNotificationIdentifiers];
-        
+
         NSString *message = [NSString stringWithFormat:@"Cleared notification with ID: %@", notId];
         CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:message];
         [self.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
@@ -643,6 +654,27 @@
 {
     NSLog(@"VoIP Notification received");
     self.notificationMessage = payload.dictionaryPayload;
+
+    //CXProviderConfiguration *providerConfiguration;
+    //NSString *appName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleDisplayName"];
+    //providerConfiguration = [[CXProviderConfiguration alloc] initWithLocalizedName:appName];
+    //providerConfiguration.maximumCallGroups = 1;
+    //providerConfiguration.maximumCallsPerCallGroup = 1;
+    //NSMutableSet *handleTypes = [[NSMutableSet alloc] init];
+    //[handleTypes addObject:@(CXHandleTypePhoneNumber)];
+    //providerConfiguration.supportedHandleTypes = handleTypes;
+    //providerConfiguration.supportsVideo = YES;
+    //if (@available(iOS 11.0, *)) {
+    //    providerConfiguration.includesCallsInRecents = NO;
+    //}
+    //CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
+    //CXProvider *provider = [[CXProvider alloc] initWithConfiguration:providerConfiguration];
+    //NSUUID *callUUID = [[NSUUID alloc] init];
+    //[provider setDelegate:self queue:nil];
+    //self.callController = [[CXCallController alloc] init];
+
+    //[provider reportNewIncomingCallWithUUID:callUUID update:callUpdate completion:^(NSError * _Nullable error) {}];
+
     [self notificationReceived];
 }
 
