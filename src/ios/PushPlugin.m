@@ -490,11 +490,20 @@
             CDVViewController* cv = (CDVViewController*) self.viewController;
             NSArray *a = @[@"INVALID", @"ignored", @"ignored", @[
                 [additionalData valueForKeyPath:@"l7.caller_name"],
-                [additionalData valueForKeyPath:@"l7.caller_id"]
+                [additionalData valueForKeyPath:@"l7.caller_id"],
+                [additionalData valueForKeyPath:@"l7.call_id"]
             ]];
             CDVInvokedUrlCommand *cmd = [CDVInvokedUrlCommand commandFromJson:a];
 
             [[cv.pluginObjects valueForKey:@"CordovaCall"] performSelector:NSSelectorFromString(@"receiveCall:") withObject:cmd];
+        } else if ([[additionalData valueForKeyPath:@"l7.type"] isEqualToString:@"voipcancel"]) {
+            CDVViewController* cv = (CDVViewController*) self.viewController;
+            NSArray *a = @[@"INVALID", @"ignored", @"ignored", @[
+                [additionalData valueForKeyPath:@"l7.call_id"]
+            ]];
+            CDVInvokedUrlCommand *cmd = [CDVInvokedUrlCommand commandFromJson:a];
+
+            [[cv.pluginObjects valueForKey:@"CordovaCall"] performSelector:NSSelectorFromString(@"cancelCall:") withObject:cmd];
         }
     }
 }
